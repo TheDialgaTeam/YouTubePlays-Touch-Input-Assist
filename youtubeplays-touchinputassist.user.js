@@ -13,9 +13,303 @@
 // @grant        GM_getValue
 // @grant        GM_notification
 // ==/UserScript==
-(function(){'use strict';function a(){var e=$("#movie_player");if(0===e.length)return void setTimeout(a,1e3);var f=e.find(".video-stream");if(0===f.length)return void setTimeout(a,1e3);var g=$("#chatframe").contents().find("yt-live-chat-renderer.style-scope");return 0===g.length?void setTimeout(a,1e3):void(q=e,r=f,s=g,b(),c(),d())}function b(a){if(a||(a=0),5!==a){var c=$(".ytp-ad-skip-button");return 0===c.length?void setTimeout(b,1e3,a+1):void c.click()}}function c(){"Top chat"===s.find("#label-text").text()&&s.find("a.yt-simple-endpoint:nth-child(2) > paper-item:nth-child(1)").click();var a=s.find("#live-chat-banner");0!==a.length&&a.css("display","none")}function d(){var a=m(t,parseFloat(r.css("width")),parseFloat(r.css("height"))),b=`<canvas id="touchGrid" width="${a.width}" height="${a.height}" style="display: none; z-index: 999; position: absolute; border: 1px solid black; left: ${a.left}%" />`,c=`<div id="touchCoord" style="display: none; z-index: 999; position: absolute; left: ${a.left}%; top: ${a.height+8}px">
+
+(function() {
+    'use strict';
+
+    // SCRIPT CONSTANTS //
+    const TOUCH_LAYOUT_NDS = {
+        name: "nds",
+        top: {
+            width: 256,
+            height: 192,
+        },
+        bottom: {
+            width: 256,
+            height: 192,
+        },
+    };
+
+    const TOUCH_LAYOUT_3DS = {
+        name: "3ds",
+        top: {
+            width: 400,
+            height: 240,
+        },
+        bottom: {
+            width: 320,
+            height: 240,
+        },
+    };
+
+    // SCRIPT VARIABLES //
+    var youtubePlayerContainer, youtubePlayerVideo, youtubeChatContainer;
+    var layoutMode = GM_getValue('layoutMode', TOUCH_LAYOUT_NDS);
+    var displayTouchGrid = GM_getValue('displayTouchGrid', false);
+
+    function loadRequiredDomElements() {
+        var playerContainer = $('#movie_player');
+
+        if (playerContainer.length === 0) {
+            setTimeout(loadRequiredDomElements, 1000);
+            return;
+        }
+
+        var playerVideo = playerContainer.find('.video-stream');
+
+        if (playerVideo.length === 0) {
+            setTimeout(loadRequiredDomElements, 1000);
+            return;
+        }
+
+        var chatContainer = $('#chatframe').contents().find('yt-live-chat-renderer.style-scope');
+
+        if (chatContainer.length === 0) {
+            setTimeout(loadRequiredDomElements, 1000);
+            return;
+        }
+
+        youtubePlayerContainer = playerContainer;
+        youtubePlayerVideo = playerVideo;
+        youtubeChatContainer = chatContainer;
+
+        skipAds();
+        setupChat();
+        setupVideo();
+    }
+
+    function skipAds(retry) {
+        if (!retry) retry = 0;
+        if (retry === 5) return;
+
+        var skipAdsButton = $('.ytp-ad-skip-button');
+
+        if (skipAdsButton.length === 0) {
+            setTimeout(skipAds, 1000, retry + 1);
+            return;
+        }
+
+        skipAdsButton.click();
+    }
+
+    function setupChat() {
+        // Set the chat to Live chat mode.
+        if (youtubeChatContainer.find('#label-text').text() === 'Top chat') {
+            youtubeChatContainer.find('a.yt-simple-endpoint:nth-child(2) > paper-item:nth-child(1)').click();
+        }
+
+        // Hide the live chat banner.
+        var liveChatBanner = youtubeChatContainer.find('#live-chat-banner');
+
+        if (liveChatBanner.length !== 0) {
+            liveChatBanner.css('display', 'none');
+        }
+    }
+
+    function setupVideo() {
+        var touchGridSize = getTouchGridSize(layoutMode, parseFloat(youtubePlayerVideo.css('width')), parseFloat(youtubePlayerVideo.css('height')));
+        var touchGridHtml = `<canvas id="touchGrid" width="${touchGridSize.width}" height="${touchGridSize.height}" style="display: none; z-index: 999; position: absolute; border: 1px solid black; left: ${touchGridSize.left}%" />`;
+        var touchCoordHtml = `<div id="touchCoord" style="display: none; z-index: 999; position: absolute; left: ${touchGridSize.left}%; top: ${touchGridSize.height + 8}px">
 <p>Touch Coordinates:</p>
 <p>X: <span id="touchCoordX">0</span></p>
 <p>Y: <span id="touchCoordY">0</span></p>
 <p>Touch Command: <span id="touchCoordCommand">0</span></p>
-</div>`;q.append(b),q.append(c);var d=q.find(".ytp-right-controls");if(d.prepend(`<button id="touchGridToggle" class="ytp-button" title="Show Grid" style="text-align: center"><i class="fas fa-border-none"></i></button>`),d.prepend(`<button id="touchGridLayout" class="ytp-button" title="Switch to 3ds layout" style="text-align: center"><i class="fas fa-gamepad"></i></button>`),e(q.find("#touchGrid")),g(q.find("#touchCoord")),i(d.find("#touchGridToggle")),k(d.find("#touchGridLayout")),u){var f=d.find("#touchGridToggle");f.html(`<i class="fas fa-border-all"></i>`),f.attr("title","Hide Grid"),q.find("#touchGrid").css("display","inherit"),q.find("#touchCoord").css("display","inherit")}}function e(a){a.on("mousemove",function(b){var c=100*((b.pageX-a.offset().left)/a.width()),d=100*((b.pageY-a.offset().top)/a.height());$("#touchCoordX").text(Math.round(c)),$("#touchCoordY").text(Math.round(d)),$("#touchCoordCommand").text(`t:${Math.round(c)}:${Math.round(d)}`)}),a.on("click",function(b){var c=100*((b.pageX-a.offset().left)/a.width()),d=100*((b.pageY-a.offset().top)/a.height()),e=s.find("yt-live-chat-text-input-field-renderer.style-scope > div:nth-child(2)");e.focus(),navigator.clipboard.writeText(`t:${Math.round(c)}:${Math.round(d)}`).then(function(){GM_notification({title:"Clipboard",text:"Successfully copied to clipboard!",timeout:3e3})},function(){GM_notification({title:"Clipboard",text:"Unable to copy into clipboard!",timeout:3e3})})}),f(a,a.get(0).getContext("2d"))}function f(a,b,c,d){var e=m(t,parseFloat(r.css("width")),parseFloat(r.css("height")));return e.width===c&&e.height===d?void setTimeout(f,1e3,a,b,c,d):void(b.canvas.width=e.width,b.canvas.height=e.height,a.css("left",`${e.left}%`),n(b,e.width,e.height),setTimeout(f,1e3,a,b,e.width,e.height))}function g(a){h(a)}function h(a,b,c){var d=m(t,parseFloat(r.css("width")),parseFloat(r.css("height")));return d.width===b&&d.height===c?void setTimeout(h,1e3,a,b,c):void(a.css("left",`${d.left}%`),a.css("top",`${d.height+8}px`),setTimeout(h,1e3,a,d.width,d.height))}function i(a){a.on("click",function(){a.find("svg").hasClass("fa-border-all")?(a.html(`<i class="fas fa-border-none"></i>`),a.attr("title","Show Grid"),q.find("#touchGrid").css("display","none"),q.find("#touchCoord").css("display","none"),GM_setValue("displayTouchGrid",!1)):(a.html(`<i class="fas fa-border-all"></i>`),a.attr("title","Hide Grid"),q.find("#touchGrid").css("display","inherit"),q.find("#touchCoord").css("display","inherit"),GM_setValue("displayTouchGrid",!0)),j(a)}),j(a)}function j(a){var b=a.find("svg");return 0===b.length?void setTimeout(j,1e3,a):void(b.css("width","50%"),b.css("height","100%"))}function k(a){a.on("click",function(){t.name===o.name?(a.attr("title","Switch to NDS layout"),t=p,GM_setValue("layoutMode",p),GM_notification({title:"Touch Grid Mode",text:"Successfully changed to 3DS layout!",timeout:3e3})):(a.attr("title","Switch to 3DS layout"),t=o,GM_setValue("layoutMode",o),GM_notification({title:"Touch Grid Mode",text:"Successfully changed to NDS layout!",timeout:3e3}))}),l(a)}function l(a){var b=a.find("svg");return 0===b.length?void setTimeout(l,1e3,a):void(b.css("width","50%"),b.css("height","100%"))}function m(a,b){var c=a.bottom.width/(a.top.width+a.bottom.width)*b,d=a.bottom.height/a.bottom.width*c;return{left:100*(a.top.width/(a.top.width+a.bottom.width)),width:c,height:d}}function n(a,b,c){var d=b/100,e=c/100;a.clearRect(0,0,a.canvas.width,a.canvas.height),a.beginPath();for(var f=0;100>=f;f++)a.moveTo(f*d,0),a.lineTo(f*d,c),a.moveTo(0,f*e),a.lineTo(b,f*e),0==f%10?(a.setLineDash([]),a.lineWidth=.5,a.stroke(),a.beginPath()):(a.setLineDash([1,1]),a.lineWidth=.25,a.stroke(),a.beginPath())}const o={name:"nds",top:{width:256,height:192},bottom:{width:256,height:192}},p={name:"3ds",top:{width:400,height:240},bottom:{width:320,height:240}};var q,r,s,t=GM_getValue("layoutMode",o),u=GM_getValue("displayTouchGrid",!1);a()})();
+</div>`;
+        var touchGridToggleHtml = `<button id="touchGridToggle" class="ytp-button" title="Show Grid" style="text-align: center"><i class="fas fa-border-none"></i></button>`;
+        var touchGridLayoutHtml = `<button id="touchGridLayout" class="ytp-button" title="Switch to 3ds layout" style="text-align: center"><i class="fas fa-gamepad"></i></button>`;
+
+        youtubePlayerContainer.append(touchGridHtml);
+        youtubePlayerContainer.append(touchCoordHtml);
+
+        var youtubePlayerControls = youtubePlayerContainer.find('.ytp-right-controls');
+        youtubePlayerControls.prepend(touchGridToggleHtml);
+        youtubePlayerControls.prepend(touchGridLayoutHtml);
+
+        setupTouchGrid(youtubePlayerContainer.find('#touchGrid'));
+        setupTouchCoord(youtubePlayerContainer.find('#touchCoord'));
+        setupTouchGridToggle(youtubePlayerControls.find('#touchGridToggle'));
+        setupTouchGridLayout(youtubePlayerControls.find('#touchGridLayout'));
+
+        if (displayTouchGrid) {
+            var touchGridToggle = youtubePlayerControls.find('#touchGridToggle');
+            touchGridToggle.html(`<i class="fas fa-border-all"></i>`);
+            touchGridToggle.attr('title', 'Hide Grid');
+
+            youtubePlayerContainer.find('#touchGrid').css('display', 'inherit');
+            youtubePlayerContainer.find('#touchCoord').css('display', 'inherit');
+        }
+    }
+
+    function setupTouchGrid(touchGrid) {
+        // Register Mouse Move Event
+        touchGrid.on('mousemove', function (e) {
+            var x = (e.pageX - touchGrid.offset().left) / touchGrid.width() * 100;
+            var y = (e.pageY - touchGrid.offset().top) / touchGrid.height() * 100;
+
+            $('#touchCoordX').text(Math.round(x));
+            $('#touchCoordY').text(Math.round(y));
+            $('#touchCoordCommand').text(`t:${Math.round(x)}:${Math.round(y)}`);
+        });
+
+        touchGrid.on('click', function (e) {
+            var x = (e.pageX - touchGrid.offset().left) / touchGrid.width() * 100;
+            var y = (e.pageY - touchGrid.offset().top) / touchGrid.height() * 100;
+
+            var chatInput = youtubeChatContainer.find('yt-live-chat-text-input-field-renderer.style-scope > div:nth-child(2)');
+            chatInput.focus();
+
+            navigator.clipboard.writeText(`t:${Math.round(x)}:${Math.round(y)}`).then(function() {
+                GM_notification({title: 'Clipboard', text: 'Successfully copied to clipboard!', timeout: 3000});
+            }, function() {
+                GM_notification({title: 'Clipboard', text: 'Unable to copy into clipboard!', timeout: 3000});
+            });
+        });
+
+        updateTouchGrid(touchGrid, touchGrid.get(0).getContext('2d'));
+    }
+
+    function updateTouchGrid(touchGrid, context, width, height) {
+        var touchGridSize = getTouchGridSize(layoutMode, parseFloat(youtubePlayerVideo.css('width')), parseFloat(youtubePlayerVideo.css('height')));
+
+        if (touchGridSize.width === width && touchGridSize.height === height) {
+            setTimeout(updateTouchGrid, 1000, touchGrid, context, width, height);
+            return;
+        }
+
+        context.canvas.width = touchGridSize.width;
+        context.canvas.height = touchGridSize.height;
+        touchGrid.css('left', `${touchGridSize.left}%`);
+
+        drawGrid(context, touchGridSize.width, touchGridSize.height);
+
+        setTimeout(updateTouchGrid, 1000, touchGrid, context, touchGridSize.width, touchGridSize.height);
+    }
+
+    function setupTouchCoord(touchCoord) {
+        updateTouchCoord(touchCoord);
+    }
+
+    function updateTouchCoord(touchCoord, width, height) {
+        var touchGridSize = getTouchGridSize(layoutMode, parseFloat(youtubePlayerVideo.css('width')), parseFloat(youtubePlayerVideo.css('height')));
+
+        if (touchGridSize.width === width && touchGridSize.height === height) {
+            setTimeout(updateTouchCoord, 1000, touchCoord, width, height);
+            return;
+        }
+
+        touchCoord.css('left', `${touchGridSize.left}%`);
+        touchCoord.css('top', `${touchGridSize.height + 8}px`);
+
+        setTimeout(updateTouchCoord, 1000, touchCoord, touchGridSize.width, touchGridSize.height);
+    }
+
+    function setupTouchGridToggle(touchGridToggle) {
+        touchGridToggle.on('click', function () {
+            if (touchGridToggle.find('svg').hasClass('fa-border-all')) {
+                touchGridToggle.html(`<i class="fas fa-border-none"></i>`);
+                touchGridToggle.attr('title', 'Show Grid');
+
+                youtubePlayerContainer.find('#touchGrid').css('display', 'none');
+                youtubePlayerContainer.find('#touchCoord').css('display', 'none');
+
+                GM_setValue('displayTouchGrid', false);
+            } else {
+                touchGridToggle.html(`<i class="fas fa-border-all"></i>`);
+                touchGridToggle.attr('title', 'Hide Grid');
+
+                youtubePlayerContainer.find('#touchGrid').css('display', 'inherit');
+                youtubePlayerContainer.find('#touchCoord').css('display', 'inherit');
+
+                GM_setValue('displayTouchGrid', true);
+            }
+
+            updateTouchGridToggle(touchGridToggle);
+        });
+
+        updateTouchGridToggle(touchGridToggle);
+    }
+
+    function updateTouchGridToggle(touchGridToggle) {
+        var touchGridToggleSvg = touchGridToggle.find('svg');
+
+        if (touchGridToggleSvg.length === 0) {
+            setTimeout(updateTouchGridToggle, 1000, touchGridToggle);
+            return;
+        }
+
+        touchGridToggleSvg.css('width', '50%');
+        touchGridToggleSvg.css('height', '100%');
+    }
+
+    function setupTouchGridLayout(touchGridLayout) {
+        touchGridLayout.on('click', function () {
+            if (layoutMode.name === TOUCH_LAYOUT_NDS.name) {
+                touchGridLayout.attr('title', 'Switch to NDS layout');
+
+                layoutMode = TOUCH_LAYOUT_3DS;
+                GM_setValue('layoutMode', TOUCH_LAYOUT_3DS);
+                GM_notification({title: 'Touch Grid Mode', text: 'Successfully changed to 3DS layout!', timeout: 3000});
+            } else {
+                touchGridLayout.attr('title', 'Switch to 3DS layout');
+
+                layoutMode = TOUCH_LAYOUT_NDS;
+                GM_setValue('layoutMode', TOUCH_LAYOUT_NDS);
+                GM_notification({title: 'Touch Grid Mode', text: 'Successfully changed to NDS layout!', timeout: 3000});
+            }
+        });
+
+        updateTouchGridLayout(touchGridLayout);
+    }
+
+    function updateTouchGridLayout(touchGridLayout) {
+        var touchGridLayoutSvg = touchGridLayout.find('svg');
+
+        if (touchGridLayoutSvg.length === 0) {
+            setTimeout(updateTouchGridLayout, 1000, touchGridLayout);
+            return;
+        }
+
+        touchGridLayoutSvg.css('width', '50%');
+        touchGridLayoutSvg.css('height', '100%');
+    }
+
+    function getTouchGridSize(layout, width, height) {
+        var adjustedWidth = layout.bottom.width / (layout.top.width + layout.bottom.width) * width;
+        var adjustedHeight = (layout.bottom.height / layout.bottom.width) * adjustedWidth;
+
+        return {
+            left: layout.top.width / (layout.top.width + layout.bottom.width) * 100,
+            width: adjustedWidth,
+            height: adjustedHeight,
+        };
+    }
+
+    function drawGrid(context, width, height) {
+        var widthStep = width / 100;
+        var heightStep = height / 100;
+
+        context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+        context.beginPath();
+
+        for (var percentage = 0; percentage <= 100; percentage++) {
+            context.moveTo(percentage * widthStep, 0);
+            context.lineTo(percentage * widthStep, height);
+            context.moveTo(0, percentage * heightStep);
+            context.lineTo(width, percentage * heightStep);
+
+            if (percentage % 10 === 0) {
+                context.setLineDash([]);
+                context.lineWidth = 0.5;
+                context.stroke();
+                context.beginPath();
+            } else {
+                context.setLineDash([1, 1]);
+                context.lineWidth = 0.25;
+                context.stroke();
+                context.beginPath();
+            }
+        }
+    }
+
+    loadRequiredDomElements();
+})();
