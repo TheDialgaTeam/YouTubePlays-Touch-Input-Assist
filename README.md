@@ -6,7 +6,7 @@ This script does not support automation (botting).
 
 ## Usage
 
-You are need [Tampermonkey](https://tampermonkey.net/) desktop browser extensions. Once those are installed, click or use this URL: https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist.user.js
+You will need [Tampermonkey](https://tampermonkey.net/) desktop browser extensions. Once those are installed, click or use this URL: https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist.user.js
 
 Alternatively, if you want to use the beta version, click or use this URL: https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist-beta.user.js
 
