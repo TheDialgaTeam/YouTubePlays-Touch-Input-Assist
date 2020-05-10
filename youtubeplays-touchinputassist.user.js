@@ -5,7 +5,7 @@
 // @author       Yong Jian Ming (jianmingyong)
 // @description  Generate useful touch commands aims to help new players to understand how the touch commands work.
 // @homepage     https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist
-// @updateURL    https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist.user.js
+// @updateURL    https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist.user.meta.js
 // @downloadURL  https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist.user.js
 // @supportURL   https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/issues
 // @match        https://www.youtube.com/watch?v=ArvVyvjm0yo*
@@ -16,7 +16,7 @@
 // @grant        GM_notification
 // ==/UserScript==
 (function () {
-  'use strict'; // SCRIPT CONSTANTS //
+  'use strict';
 
   function a() {
     var f = $('#movie_player');
@@ -40,7 +40,6 @@
 
   function d() {
     'Top chat' === p.find('#label-text').text() && p.find('a.yt-simple-endpoint:nth-child(2) > paper-item:nth-child(1)').click();
-    // Hide the live chat banner.
     var a = p.find('#live-chat-banner');
     0 !== a.length && a.css('display', 'none');
   }
@@ -59,7 +58,6 @@
   }
 
   function f(a) {
-    // Register Mouse Move Event
     a.on('mousemove', function (b) {
       var c = 100 * ((b.pageX - a.offset().left) / a.width()),
           d = 100 * ((b.pageY - a.offset().top) / a.height());
