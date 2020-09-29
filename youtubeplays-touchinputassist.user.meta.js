@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTubePlays Touch Input Assist
 // @namespace    TheDialgaTeam/YouTubePlays-Touch-Input-Assist
-// @version      0.2.2
+// @version      0.2.3
 // @author       Yong Jian Ming (jianmingyong)
 // @description  Generate useful touch commands aims to help new players to understand how the touch commands work.
 // @homepage     https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist
@@ -10,6 +10,7 @@
 // @supportURL   https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/issues
 // @match        https://www.youtube.com/watch?v=29tX5364-uE*
 // @match        https://www.youtube.com/watch?v=AFgRrzUTasM*
+// @match        https://www.youtube.com/watch?v=SF8a3fq5w1I*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require      https://kit.fontawesome.com/e5e217aee3.js
 // @grant        GM_setValue
