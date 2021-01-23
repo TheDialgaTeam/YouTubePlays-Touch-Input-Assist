@@ -8,8 +8,8 @@
 // @updateURL    https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist.user.meta.js
 // @downloadURL  https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/raw/master/youtubeplays-touchinputassist.user.js
 // @supportURL   https://github.com/TheDialgaTeam/YouTubePlays-Touch-Input-Assist/issues
-// @match        https://www.youtube.com/watch?v=HaTczl7e5WA*
-// @match        https://www.youtube.com/watch?v=SPVynCS55Pc*
+// @match        https://www.youtube.com/watch?v=*
+// @match        https://www.youtube.com/watch?v=*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require      https://kit.fontawesome.com/e5e217aee3.js
 // @grant        GM_setValue
